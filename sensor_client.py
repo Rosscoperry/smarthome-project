@@ -68,11 +68,5 @@ while True:
 
         else:
             print('Failed to get reading. Try again!')
-        
-        cnt = cnt + 1
-        if cnt > 10:
-            cur.close()
-            conn.close()
-            break
 
     time.sleep(120)
