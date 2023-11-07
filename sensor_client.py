@@ -7,6 +7,7 @@ import Adafruit_DHT
 from datetime import datetime, timezone
 import uuid
 import json 
+import time
 
 with open('config.json', 'r') as f:
     config = json.load(f)
@@ -35,36 +36,43 @@ cur = conn.cursor()
 
 cnt = 0
 while True:
-    humidity, temperature = Adafruit_DHT.read_retry(DHT_SENSOR, DHT_PIN)
     timestamp = datetime.now(timezone.utc)
-    timestamp = timestamp.strftime("%Y/%m/%d %H:%M:%S")
-    if humidity is not None and temperature is not None:
-        
-        print(temperature, humidity)
-        
-        print('Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(temperature, humidity))
-        
-        #insert temp
-        try:
-            cur.execute("INSERT INTO Readings (ReadingId, SensorId, Value, Timestamp) VALUES (?, ?, ?, ?)", (str(uuid.uuid4()),"6de58c3e-ad9d-49b8-bd71-cbd0f6023b6f",str(temperature),str(timestamp)))
-            conn.commit()
-        except mariadb.Error as e:
-            print(f"Error: {e}")
+
+    if timestamp.minute in [0, 30]:
+
+        humidity, temperature = Adafruit_DHT.read_retry(DHT_SENSOR, DHT_PIN)
+        timestamp = timestamp.strftime("%Y/%m/%d %H:%M:%S")
 
 
-        #insert humidity
-        try:
-            cur.execute("INSERT INTO Readings (ReadingId, SensorId, Value, Timestamp) VALUES (?, ?, ?, ?)", (str(uuid.uuid4()),"7597211a-7c3a-11ee-9aa9-f9b59efa093d",str(humidity),str(timestamp)))
-            conn.commit()
-        except mariadb.Error as e:
-            print(f"Error: {e}") 
- 
+        if humidity is not None and temperature is not None:
+            
+            print(temperature, humidity)
+            
+            print('Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(temperature, humidity))
+            
+            #insert temp
+            try:
+                cur.execute("INSERT INTO Readings (ReadingId, SensorId, Value, Timestamp) VALUES (?, ?, ?, ?)", (str(uuid.uuid4()),"6de58c3e-ad9d-49b8-bd71-cbd0f6023b6f",str(temperature),str(timestamp)))
+                conn.commit()
+            except mariadb.Error as e:
+                print(f"Error: {e}")
 
-    else:
-        print('Failed to get reading. Try again!')
+
+            #insert humidity
+            try:
+                cur.execute("INSERT INTO Readings (ReadingId, SensorId, Value, Timestamp) VALUES (?, ?, ?, ?)", (str(uuid.uuid4()),"7597211a-7c3a-11ee-9aa9-f9b59efa093d",str(humidity),str(timestamp)))
+                conn.commit()
+            except mariadb.Error as e:
+                print(f"Error: {e}") 
     
-    cnt = cnt + 1
-    if cnt > 10:
-        cur.close()
-        conn.close()
-        break
+
+        else:
+            print('Failed to get reading. Try again!')
+        
+        cnt = cnt + 1
+        if cnt > 10:
+            cur.close()
+            conn.close()
+            break
+
+    time.sleep(120)
