@@ -1,0 +1,6 @@
+{
+    "username":"<username>",
+    "password":"<password>",
+    "host":"<pi-name>.local",
+    "database":"<database-name>"
+}
