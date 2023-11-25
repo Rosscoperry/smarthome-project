@@ -35,7 +35,8 @@ DHT_PIN = 4
 cur = conn.cursor()
 
 cnt = 0
-while True:
+run = True
+while run:
     timestamp = datetime.now(timezone.utc)
 
     humidity, temperature = Adafruit_DHT.read_retry(DHT_SENSOR, DHT_PIN)
@@ -61,6 +62,9 @@ while True:
             conn.commit()
         except mariadb.Error as e:
             print(f"Error: {e}") 
+
+        run == False
+        break
 
 
     else:
